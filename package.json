@@ -1,0 +1,35 @@
+{
+  "name": "smart-codex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "smart-codex": "dist/cli.js",
+    "smart-codex-app": "scripts/smart-codex-app.cjs"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-static.mjs",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "desktop": "npm run build && electron .",
+    "desktop:dev": "npm run build && electron .",
+    "desktop:smoke": "node scripts/smoke-electron.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "latest",
+    "commander": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "electron": "^43.1.1",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "main": "dist/electron-main.js"
+}

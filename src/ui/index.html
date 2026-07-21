@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Codex</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-phase="idle">
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="identity">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <h1>Smart Codex</h1>
+            <p>L’orchestrateur qui choisit la bonne stratégie</p>
+          </div>
+        </div>
+
+        <div class="project-switcher">
+          <div class="project-copy">
+            <strong id="project-name">Aucun projet</strong>
+            <span id="project-path">Choisis un dossier de travail</span>
+          </div>
+          <button id="choose-project" class="change-button" type="button">Choisir</button>
+        </div>
+
+        <div id="app-status" class="app-status"><i></i><span>Prêt</span></div>
+      </header>
+
+      <section class="workbench">
+        <article class="request-pane">
+          <div class="pane-heading">
+            <span>TA DEMANDE</span>
+            <small>Décris le résultat attendu, Codex choisit la stratégie.</small>
+          </div>
+          <textarea
+            id="prompt"
+            rows="5"
+            placeholder="Ex. Ajoute une page profil et branche-la à l’API existante…"
+            spellcheck="true"
+          ></textarea>
+          <div class="request-actions">
+            <span class="shortcut">Ctrl + Entrée</span>
+            <button id="launch" class="launch-button" type="button">
+              <span class="runner" aria-hidden="true"></span>
+              <span id="launch-label">Lancer</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </article>
+
+        <aside class="activity-pane" aria-live="polite">
+          <div class="pane-heading">
+            <span>ACTIVITÉ</span>
+            <small id="activity-summary">En attente d’une demande</small>
+          </div>
+          <ol class="activity-list">
+            <li data-step="docs"><i></i><span>Lecture de la documentation</span></li>
+            <li data-step="files"><i></i><span>Analyse du projet</span></li>
+            <li data-step="route"><i></i><span id="route-step-label">Choix du modèle</span></li>
+            <li data-step="execution"><i></i><span>Exécution de Codex</span></li>
+            <li data-step="tests"><i></i><span>Tests et validation</span></li>
+          </ol>
+        </aside>
+      </section>
+
+      <section id="strategy-bar" class="strategy-bar" aria-label="Décision du routeur">
+        <span class="strategy-label">STRATÉGIE</span>
+        <span class="strategy-chip primary-chip"><strong id="decision-model">—</strong></span>
+        <span class="strategy-chip"><strong id="decision-reasoning">—</strong></span>
+        <span class="strategy-chip"><strong id="decision-agents">— AGENT</strong></span>
+        <span class="strategy-chip"><strong id="decision-access">—</strong></span>
+        <span id="decision-why" class="strategy-reason">Le routeur expliquera son choix ici.</span>
+      </section>
+
+      <section class="result-pane">
+        <header class="result-heading">
+          <div>
+            <span>RÉSULTAT CODEX</span>
+            <small id="result-caption">La réponse finale apparaîtra ici.</small>
+          </div>
+          <span id="result-status" class="result-status"></span>
+        </header>
+        <pre id="result-output" class="result-output">Prêt à travailler sur ton projet.</pre>
+      </section>
+    </main>
+    <script type="module" src="../renderer.js"></script>
+  </body>
+</html>
+
