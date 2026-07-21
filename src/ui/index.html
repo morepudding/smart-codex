@@ -2,94 +2,60 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
-    />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Codex</title>
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./routing-v2.css" />
   </head>
   <body data-phase="idle">
-    <main class="app-shell">
-      <header class="topbar">
-        <div class="identity">
-          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div>
-            <h1>Smart Codex</h1>
-            <p>L’orchestrateur qui choisit la bonne stratégie</p>
-          </div>
-        </div>
-
-        <div class="project-switcher">
-          <div class="project-copy">
-            <strong id="project-name">Aucun projet</strong>
-            <span id="project-path">Choisis un dossier de travail</span>
-          </div>
-          <button id="choose-project" class="change-button" type="button">Choisir</button>
-        </div>
-
-        <div id="app-status" class="app-status"><i></i><span>Prêt</span></div>
-      </header>
-
-      <section class="workbench">
-        <article class="request-pane">
-          <div class="pane-heading">
-            <span>TA DEMANDE</span>
-            <small>Décris le résultat attendu, Codex choisit la stratégie.</small>
-          </div>
-          <textarea
-            id="prompt"
-            rows="5"
-            placeholder="Ex. Ajoute une page profil et branche-la à l’API existante…"
-            spellcheck="true"
-          ></textarea>
-          <div class="request-actions">
-            <span class="shortcut">Ctrl + Entrée</span>
-            <button id="launch" class="launch-button" type="button">
-              <span class="runner" aria-hidden="true"></span>
-              <span id="launch-label">Lancer</span>
-              <span class="arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </article>
-
-        <aside class="activity-pane" aria-live="polite">
-          <div class="pane-heading">
-            <span>ACTIVITÉ</span>
-            <small id="activity-summary">En attente d’une demande</small>
-          </div>
-          <ol class="activity-list">
-            <li data-step="docs"><i></i><span>Lecture de la documentation</span></li>
-            <li data-step="files"><i></i><span>Analyse du projet</span></li>
-            <li data-step="route"><i></i><span id="route-step-label">Choix du modèle</span></li>
-            <li data-step="execution"><i></i><span>Exécution de Codex</span></li>
-            <li data-step="tests"><i></i><span>Tests et validation</span></li>
-          </ol>
-        </aside>
-      </section>
-
-      <section id="strategy-bar" class="strategy-bar" aria-label="Décision du routeur">
-        <span class="strategy-label">STRATÉGIE</span>
-        <span class="strategy-chip primary-chip"><strong id="decision-model">—</strong></span>
-        <span class="strategy-chip"><strong id="decision-reasoning">—</strong></span>
-        <span class="strategy-chip"><strong id="decision-agents">— AGENT</strong></span>
-        <span class="strategy-chip"><strong id="decision-access">—</strong></span>
-        <span id="decision-why" class="strategy-reason">Le routeur expliquera son choix ici.</span>
-      </section>
-
-      <section class="result-pane">
-        <header class="result-heading">
-          <div>
-            <span>RÉSULTAT CODEX</span>
-            <small id="result-caption">La réponse finale apparaîtra ici.</small>
-          </div>
-          <span id="result-status" class="result-status"></span>
+    <main class="app-layout">
+      <aside class="history-sidebar" aria-label="Historique des missions">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><strong>Smart Codex</strong></div>
+        <button id="new-mission" class="new-mission" type="button"><span>＋</span> Nouvelle mission</button>
+        <nav id="history-list" class="history-list" aria-label="Sessions précédentes"></nav>
+      </aside>
+      <section class="main-panel">
+        <header class="main-header">
+          <button id="choose-project" class="project-switcher" type="button"><span class="project-copy"><strong id="project-name">Aucun projet</strong><span id="project-path">Choisir un dossier projet</span></span><span aria-hidden="true">⌄</span></button>
+          <div id="app-status" class="app-status"><i></i><span>Prêt</span></div>
+          <button id="toggle-context" class="icon-button" type="button" aria-label="Afficher ou masquer le panneau de contexte" title="Afficher ou masquer le contexte">☷</button>
         </header>
-        <pre id="result-output" class="result-output">Prêt à travailler sur ton projet.</pre>
+        <section id="empty-state" class="empty-state">
+          <div class="empty-copy"><p>Smart Codex</p><h1>Quelle mission veux-tu lancer&nbsp;?</h1><span>Décris le résultat attendu. La conversation restera séparée du journal technique.</span></div>
+          <div class="composer"><textarea id="prompt" rows="4" placeholder="Décris le résultat attendu…" spellcheck="true"></textarea><div class="composer-footer"><span>Ctrl + Entrée pour analyser</span><button id="launch" class="launch-button" type="button"><span id="launch-label">Analyser la mission</span> <b>→</b></button></div></div>
+          <section id="routing-proposal" class="routing-proposal" hidden>
+            <header><div><span class="eyebrow">DÉCISION AUTOMATIQUE</span><h2 id="proposal-title">Terra</h2></div><span id="proposal-observation" class="comparison-badge">Observation 1/20</span></header>
+            <div class="proposal-grid">
+              <div><span>Mode</span><strong id="proposal-intent">Conseil</strong></div>
+              <label>Modèle<select id="proposal-model" disabled><option value="luna">Luna</option><option value="terra">Terra</option><option value="sol">Sol</option></select></label>
+              <label>Réflexion<select id="proposal-reasoning" disabled><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label>
+              <label>Workflow<select id="proposal-workflow" disabled><option value="single-agent">Agent unique</option><option value="development-review">Développement + revue</option></select></label>
+              <label>Accès<select id="proposal-permissions" disabled><option value="read-only">Lecture seule</option><option value="workspace-write">Écriture</option></select></label>
+              <div><span>Résultat</span><strong id="proposal-result">Réponse textuelle</strong></div>
+            </div>
+            <p class="proposal-unknowns">Incertitude : <strong id="proposal-uncertainty">faible</strong></p>
+            <p id="proposal-reason" class="proposal-reason"></p>
+            <p id="proposal-unknowns" class="proposal-unknowns" hidden></p>
+            <p id="confirmation-note" class="confirmation-note" hidden>Cette action présente un caractère destructif : le lancement vaut confirmation explicite.</p>
+            <footer><button id="confirm-launch" class="launch-button" type="button">Lancer</button><button id="modify-route" class="link-button" type="button">Modifier</button></footer>
+          </section>
+        </section>
+        <section id="mission-view" class="mission-view" hidden>
+          <header class="mission-header"><div class="mission-heading"><h1 id="mission-project">Projet</h1><p id="mission-title">Mission</p></div><div class="mission-actions"><span id="mission-meta" class="mission-meta">En cours</span><button id="show-request" class="link-button" type="button">Reprendre</button><button id="stop-mission" class="stop-button" type="button" hidden>Arrêter</button></div></header>
+          <div id="conversation" class="conversation" aria-live="polite"></div>
+          <button id="return-to-result" class="return-to-result" type="button" hidden>Revenir au résultat ↓</button>
+          <section id="permission-card" class="permission-card" hidden><strong>Cette mission a besoin d’écriture.</strong><p id="permission-message"></p><button id="retry-permission" class="launch-button" type="button">Autoriser l’écriture et relancer</button></section>
+        </section>
       </section>
+      <aside id="context-sidebar" class="context-sidebar" aria-label="Contexte de la mission">
+        <section><span class="eyebrow">CONTEXTE</span><strong id="context-project">Aucun projet</strong><small id="context-path">—</small></section>
+        <section><span class="eyebrow">DÉCISION</span><dl class="context-decision"><div><dt>Mode</dt><dd id="context-mode">—</dd></div><div><dt>Modèle</dt><dd id="strategy-main">En attente</dd></div><div><dt>Workflow</dt><dd id="strategy-sub">—</dd></div><div><dt>Accès</dt><dd id="context-access">—</dd></div><div><dt>Résultat</dt><dd id="context-result">—</dd></div></dl><button id="strategy-details-toggle" class="link-button" type="button" hidden>Voir les détails</button><div id="strategy-details" class="strategy-details" hidden></div></section>
+        <section><span class="eyebrow">MISSION</span><dl><div><dt>État</dt><dd id="context-status">Prête</dd></div><div><dt>Durée</dt><dd id="context-duration">—</dd></div><div><dt>Validation</dt><dd id="context-validation">—</dd></div><div><dt>Modifications</dt><dd id="context-files">—</dd></div><div><dt>Lignes</dt><dd id="context-lines">—</dd></div></dl></section>
+      </aside>
     </main>
+    <script src="./vendor/marked.umd.js"></script>
+    <script src="./vendor/purify.min.js"></script>
     <script type="module" src="../renderer.js"></script>
   </body>
 </html>
-

@@ -5,11 +5,11 @@ export function formatDecision(decision: RoutingDecision, context: ProjectContex
     "Decision du routeur",
     `  Modele       ${decision.model}`,
     `  Raisonnement ${decision.reasoning}`,
-    `  Agents       ${decision.agentCount}`,
-    `  Acces        ${decision.sandbox}`,
+    `  Workflow     ${decision.workflow}`,
+    `  Acces        ${decision.permissions}`,
     `  Projet       ${context.root}`,
-    `  Pourquoi     ${decision.reasons.join("; ")}`,
+    `  Incertitude  ${decision.uncertainty}`,
+    `  Pourquoi     ${decision.reason}`,
   ];
   return lines.join("\n");
 }
-

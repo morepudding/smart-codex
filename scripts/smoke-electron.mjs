@@ -22,12 +22,11 @@ const timeout = setTimeout(() => {
 
 child.on("exit", (code) => {
   clearTimeout(timeout);
-  if (code === 0 && output.includes("SMART_CODEX_RENDERER_READY")) {
-    console.log("Electron renderer loaded successfully.");
+  if (code === 0 && output.includes("SMART_CODEX_RENDERER_READY") && output.includes("SMART_CODEX_MARKDOWN_READY")) {
+    console.log("Electron renderer and secure GFM Markdown loaded successfully.");
     return;
   }
   console.error(output);
   console.error(`Electron smoke test failed with code ${code ?? 1}.`);
   process.exitCode = code ?? 1;
 });
-

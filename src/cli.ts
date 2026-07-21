@@ -3,8 +3,9 @@ import process from "node:process";
 import { Command, Option } from "commander";
 import { runCodex } from "./codex-runner.js";
 import { formatDecision } from "./format.js";
+import { routeWithLuna } from "./luna-router.js";
 import { loadProjectContext } from "./project-context.js";
-import { forceRoute, routeRequest } from "./router.js";
+import { forceRoute } from "./router.js";
 import type { RouteName } from "./types.js";
 
 const program = new Command();
@@ -18,21 +19,23 @@ program
   .option("--json", "sortie JSON exploitable par la future interface Electron")
   .addOption(
     new Option("--route <route>", "force une route")
-      .choices(["luna-low", "terra-medium", "sol-high", "sol-xhigh"]),
+      .choices(["luna-low", "terra-medium", "sol-high", "sol-xhigh-review"]),
   )
   .showHelpAfterError();
 
 program.action(async (parts: string[], options: { project: string; dryRun?: boolean; json?: boolean; route?: RouteName }) => {
   const request = parts.join(" ").trim();
   const context = await loadProjectContext(options.project);
-  const decision = options.route ? forceRoute(options.route, request) : routeRequest(request, context);
+  const routed = options.route ? undefined : await routeWithLuna(request, context);
+  const decision = options.route ? forceRoute(options.route, request) : routed!.decision;
 
   if (options.json && options.dryRun) {
-    console.log(JSON.stringify({ decision, project: { root: context.root, signals: context.signals, docs: context.docs.map((doc) => doc.path) } }, null, 2));
+    console.log(JSON.stringify({ decision, routing: routed ? { lunaAttempts: routed.lunaAttempts, routerUsage: routed.routerUsage, fallbackReason: routed.fallbackReason } : undefined, project: { root: context.root, signals: context.signals } }, null, 2));
     return;
   }
 
   console.log(formatDecision(decision, context));
+  if (routed) console.log(`  Routeur      Luna (${routed.lunaAttempts} tentative(s), ${routed.routerUsage.totalTokens} tokens)`);
   if (options.dryRun) return;
 
   console.log("\nExecution Codex en cours...\n");
@@ -50,4 +53,3 @@ program.parseAsync().catch((error: unknown) => {
   console.error(`smart-codex: ${message}`);
   process.exitCode = 1;
 });
-

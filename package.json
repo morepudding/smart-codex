@@ -11,25 +11,29 @@
     "build": "tsc -p tsconfig.json && node scripts/copy-static.mjs",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "test": "vitest run",
+    "test": "npm run check:utf8 && npm run build && node --test --test-isolation=none tests/*.test.mjs",
+    "check:utf8": "node scripts/check-utf8.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "desktop": "npm run build && electron .",
     "desktop:dev": "npm run build && electron .",
-    "desktop:smoke": "node scripts/smoke-electron.mjs"
+    "desktop:smoke": "node scripts/smoke-electron.mjs",
+    "e2e:missions": "npm run build && tsx scripts/run-e2e-missions.ts",
+    "e2e:sol-high": "npm run build && tsx scripts/run-e2e-missions.ts --mission sol-high"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "@openai/codex-sdk": "latest",
-    "commander": "latest"
+    "commander": "latest",
+    "dompurify": "^3.4.12",
+    "marked": "^18.0.7"
   },
   "devDependencies": {
     "@types/node": "latest",
     "electron": "^43.1.1",
     "tsx": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
+    "typescript": "latest"
   },
   "main": "dist/electron-main.js"
 }
