@@ -25,8 +25,8 @@ const ADVICE_PATTERN = /\b(tu (?:en )?penses quoi|qu[' ]?en penses[- ]?tu|tu ver
 const PLAN_PATTERN = /\b(plan(?:ifie|ification)?|architecture|approche|strategie|etapes|roadmap)\b/i;
 const REVIEW_PATTERN = /^\s*(?:fais\s+(?:une\s+)?|effectue\s+(?:une\s+)?)?(?:revue|review|audit|evalue|relis)\b/i;
 const ANALYSIS_PATTERN = /^\s*(?:analyse|explique|inspecte|diagnostique|cherche|compare|resume|pourquoi)\b/i;
-const FIX_PATTERN = /^\s*(?:corrige|repare|fixe|resous|debugge)\b/i;
-const IMPLEMENT_PATTERN = /^\s*(?:implemente|modifie|ajoute|cree|supprime|retire|refactorise|migre|integre|branche|connecte|revois|rends|affiche|separe|transforme|compacte|applique)\b/i;
+const FIX_PATTERN = /^\s*(?:(?:peux|pourrais|voudrais)[- ]?tu\s+)?(?:corrige|repare|fixe|resous|debugge)\b/i;
+const IMPLEMENT_PATTERN = /^\s*(?:(?:peux|pourrais|voudrais)[- ]?tu\s+)?(?:implemente(?:r)?|modifie|ajoute|cree|supprime|retire|refactorise|migre|integre|branche|connecte|revois|rends|affiche|separe|transforme|compacte|applique)\b/i;
 const HIGH_PATTERN = /\b(architecture|migration|refactor|debug|debog|diagnosti|performance|securite|security|concurren|race condition|root cause|cause racine)\b/i;
 const CRITICAL_PATTERN = /(tout le projet|toute la solution|sans regression|de bout en bout|end[- ]to[- ]end|migration complete|audit de securite complet|production critique)/i;
 const LOW_PATTERN = /\b(faute|orthographe|reformule|traduis|traduction|renomme|typo|explique en une phrase)\b/i;
@@ -36,9 +36,9 @@ function isRecord(value: unknown): value is Record<string, unknown> { return Boo
 
 export function classifyIntent(request: string, fallback: TaskIntent = "discussion"): TaskIntent {
   const text = normalizedText(request);
-  if (ADVICE_PATTERN.test(text)) return PLAN_PATTERN.test(text) ? "planning" : "ideation";
   if (FIX_PATTERN.test(text)) return "fix";
   if (IMPLEMENT_PATTERN.test(text)) return "implementation";
+  if (ADVICE_PATTERN.test(text)) return PLAN_PATTERN.test(text) ? "planning" : "ideation";
   if (REVIEW_PATTERN.test(text)) return "review";
   if (ANALYSIS_PATTERN.test(text)) return "analysis";
   if (/\b(propose|imagine|idee|idees|concept)\b/i.test(text)) return PLAN_PATTERN.test(text) ? "planning" : "ideation";
@@ -89,6 +89,24 @@ export function createDecision(
 
 export function createPresetDecision(preset: RouteName, permissions: Permissions, metadata: Omit<Parameters<typeof createDecision>[1], "preset">): RoutingDecision {
   return createDecision({ ...ROUTE_PRESETS[preset], permissions }, { ...metadata, preset });
+}
+
+export function createManualDecision(
+  selection: { intent: TaskIntent; modelName: ModelName; reasoning: ReasoningLevel; workflow: Workflow },
+  request: string,
+): RoutingDecision {
+  return createDecision({
+    modelName: selection.modelName,
+    reasoning: selection.reasoning,
+    workflow: selection.workflow,
+    permissions: permissionsForIntent(selection.intent),
+  }, {
+    uncertainty: "low",
+    requiresConfirmation: requestNeedsConfirmation(request),
+    reason: "Configuration choisie manuellement.",
+    source: "user",
+    intent: selection.intent,
+  });
 }
 
 export function validateLunaDecision(value: unknown, request: string): RoutingDecision {

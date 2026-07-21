@@ -17,6 +17,8 @@ const MANIFEST_NAMES = [
   "Gemfile",
 ];
 const MAX_DOCUMENT_CHARS = 12_000;
+const MAX_SELECTED_CONTEXT_FILES = 10;
+const MAX_SELECTED_CONTEXT_CHARS = 50_000;
 
 async function exists(filePath: string): Promise<boolean> {
   try {
@@ -103,3 +105,22 @@ export async function loadProjectContext(projectPath: string): Promise<ProjectCo
   return { root, docs, manifests, signals };
 }
 
+export async function addSelectedContextFiles(context: ProjectContext, selectedPaths: string[]): Promise<ProjectContext> {
+  const rootPrefix = context.root.endsWith(path.sep) ? context.root : context.root + path.sep;
+  const uniquePaths = [...new Set(selectedPaths.map((selectedPath) => path.resolve(selectedPath)))];
+  if (uniquePaths.length > MAX_SELECTED_CONTEXT_FILES) throw new Error(`Tu peux ajouter au maximum ${MAX_SELECTED_CONTEXT_FILES} fichiers de contexte.`);
+
+  const selectedDocs: ProjectContext["docs"] = [];
+  for (const selectedPath of uniquePaths) {
+    if (selectedPath !== context.root && !selectedPath.toLowerCase().startsWith(rootPrefix.toLowerCase())) throw new Error("Les fichiers de contexte doivent appartenir au projet actif.");
+    if (/\.env(?:\.|$)/i.test(path.basename(selectedPath))) throw new Error("Les fichiers .env ne peuvent pas être utilisés comme contexte.");
+    const info = await stat(selectedPath).catch(() => undefined);
+    if (!info?.isFile()) throw new Error("Un fichier de contexte sélectionné est introuvable.");
+    const content = await readFile(selectedPath, "utf8").catch(() => undefined);
+    if (content === undefined) throw new Error("Un fichier de contexte n'est pas lisible comme texte UTF-8.");
+    selectedDocs.push({ path: selectedPath, content: content.slice(0, MAX_SELECTED_CONTEXT_CHARS) });
+  }
+
+  const selectedSet = new Set(selectedDocs.map((doc) => doc.path.toLowerCase()));
+  return { ...context, docs: [...context.docs.filter((doc) => !selectedSet.has(doc.path.toLowerCase())), ...selectedDocs] };
+}

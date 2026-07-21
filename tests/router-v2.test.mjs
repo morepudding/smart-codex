@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
 import { routeWithLuna } from "../dist/luna-router.js";
-import { loadProjectContext } from "../dist/project-context.js";
-import { validateExecutionDecision, validateLunaDecision } from "../dist/router.js";
+import { addSelectedContextFiles, loadProjectContext } from "../dist/project-context.js";
+import { createManualDecision, validateExecutionDecision, validateLunaDecision } from "../dist/router.js";
 import { buildRoutingBrief } from "../dist/routing-brief.js";
 
 const fixtureRoot = path.resolve("fixtures/e2e-node");
@@ -56,6 +56,15 @@ test("prepare un dossier compact avec documentation, stack, Git, tests et fichie
   assert.ok(JSON.stringify(brief).length < 20_000);
 });
 
+test("ajoute un vrai fichier de contexte sans autoriser les fichiers sensibles", async () => {
+  const context = await loadProjectContext(fixtureRoot);
+  const readmePath = path.join(fixtureRoot, "README.md");
+  const enriched = await addSelectedContextFiles(context, [readmePath]);
+  assert.ok(enriched.docs.some((doc) => doc.path === readmePath && doc.content.length > 0));
+  await assert.rejects(() => addSelectedContextFiles(context, [path.join(fixtureRoot, ".env")]), /\.env/i);
+  await assert.rejects(() => addSelectedContextFiles(context, [path.resolve("package.json")]), /projet actif/i);
+});
+
 test("retente Luna une fois apres une decision invalide", async () => {
   const context = await loadProjectContext(fixtureRoot);
   const attempts = [];
@@ -88,4 +97,12 @@ test("corrige une intention Luna trop agressive pour une demande de conseil", ()
   assert.equal(decision.intent, "ideation");
   assert.equal(decision.permissions, "read-only");
   assert.equal(decision.expectedResult, "text-response");
+});
+
+test("construit une decision manuelle sans routage Luna", () => {
+  const decision = createManualDecision({ intent: "implementation", modelName: "sol", reasoning: "high", workflow: "single-agent" }, "Ajoute une page profil");
+  assert.equal(decision.source, "user");
+  assert.equal(decision.model, "gpt-5.6-sol");
+  assert.equal(decision.reasoning, "high");
+  assert.equal(decision.permissions, "workspace-write");
 });

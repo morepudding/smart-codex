@@ -33,11 +33,14 @@ function migrateSession(value: unknown): MissionSession | undefined {
   if (typeof candidate.id !== "string" || typeof candidate.request !== "string" || typeof candidate.projectPath !== "string") return undefined;
   if (candidate.initialDecision && candidate.executedDecision) {
     const session = candidate as unknown as MissionSession;
+    const messages = Array.isArray(candidate.messages) ? candidate.messages : [];
+    if (messages.length) return { ...session, events: Array.isArray(candidate.events) ? candidate.events as MissionSession["events"] : [], messages: messages as NonNullable<MissionSession["messages"]> };
     return { ...session, events: Array.isArray(candidate.events) ? candidate.events as MissionSession["events"] : [] };
   }
 
   const decision = legacyDecision(candidate.decision, candidate.projectPath, candidate.request);
   const result = (candidate.result && typeof candidate.result === "object" ? candidate.result : {}) as Record<string, unknown>;
+  const existingMessages = Array.isArray(candidate.messages) ? candidate.messages : [];
   const changes = Array.isArray(result.changes) ? result.changes.length : 0;
   const status = (typeof candidate.status === "string" ? candidate.status : "interrupted") as MissionStatus;
   const durationMs = typeof candidate.durationMs === "number" ? candidate.durationMs : 0;
@@ -53,8 +56,15 @@ function migrateSession(value: unknown): MissionSession | undefined {
     initialDecision: decision,
     executedDecision: decision,
     outcome: { status, durationMs, validations: { tests: { run: 0, failed: 0 }, build: { run: 0, failed: 0 } }, filesModified: changes, linesAdded: 0, linesDeleted: 0 },
+    ...(typeof candidate.threadId === "string" ? { threadId: candidate.threadId } : {}),
     ...(typeof result.finalResponse === "string" ? { summary: { finalResponse: result.finalResponse } } : {}),
+    ...(existingMessages.length
+      ? { messages: existingMessages as NonNullable<MissionSession["messages"]> }
+      : typeof result.finalResponse === "string"
+        ? { messages: [{ role: "user", content: candidate.request, at: typeof candidate.createdAt === "number" ? candidate.createdAt : Date.now() }, { role: "assistant", content: result.finalResponse, at: typeof candidate.updatedAt === "number" ? candidate.updatedAt : Date.now() }] }
+        : {}),
     ...(typeof candidate.error === "string" ? { error: candidate.error } : {}),
+    ...(candidate.experimentalRouting && typeof candidate.experimentalRouting === "object" ? { experimentalRouting: candidate.experimentalRouting as NonNullable<MissionSession["experimentalRouting"]> } : {}),
   };
 }
 
@@ -126,6 +136,13 @@ export class SessionStore {
     this.sessions[index] = updated;
     await this.persist();
     return clone(updated);
+  }
+
+  async delete(id: string): Promise<void> {
+    const index = this.sessions.findIndex((candidate) => candidate.id === id);
+    if (index < 0) throw new Error("Conversation introuvable.");
+    this.sessions.splice(index, 1);
+    await this.persist();
   }
 
   private async persist(): Promise<void> {

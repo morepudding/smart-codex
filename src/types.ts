@@ -10,6 +10,11 @@ export type UncertaintyLevel = "low" | "medium" | "high";
 export type RoutingSource = "luna" | "preset" | "legacy-fallback" | "terra-fallback" | "user";
 export type RiskLevel = "low" | "medium" | "high";
 export type ConfidenceLevel = "low" | "medium" | "high";
+export type ExperimentalIntent = "advice" | "analysis" | "implementation" | "bugfix" | "review";
+export type TaskFamily = "advice" | "localized_edit" | "mechanical_change" | "repo_bugfix" | "feature" | "long_refactor" | "terminal_heavy";
+export type TaskScope = "local" | "multi_file" | "multi_package" | "unknown";
+export type DocumentationQuality = "poor" | "partial" | "good";
+export type ExperimentalRisk = "low" | "medium" | "high" | "critical";
 export type TaskIntent = "discussion" | "ideation" | "planning" | "analysis" | "implementation" | "fix" | "review";
 export type ExpectedResult = "text-response" | "plan" | "project-changes" | "review-report";
 export type MissionStatus = "running" | "completed" | "failed" | "permission_required" | "cancelled" | "timed_out" | "interrupted";
@@ -53,6 +58,51 @@ export interface RoutingResult {
   routerUsage: TokenUsage;
   lunaAttempts: number;
   fallbackReason?: string;
+}
+
+export interface TaskProfile {
+  intent: ExperimentalIntent;
+  family: TaskFamily;
+  scope: TaskScope;
+  reasoningDepth: "low" | "medium" | "high";
+  mechanicalVolume: "low" | "medium" | "high";
+  uncertainty: "low" | "medium" | "high";
+  risk: ExperimentalRisk;
+  terminalIntensity: "low" | "medium" | "high";
+  documentationQuality: DocumentationQuality;
+  requiresWrite: boolean;
+  availableValidations: string[];
+  summary: string;
+}
+
+export interface BenchmarkPrior {
+  source: string;
+  version: string;
+  measuredAt: string;
+  family: TaskFamily;
+  model: ModelName;
+  reasoning: ReasoningLevel;
+  score: number;
+  confidence: ConfidenceLevel;
+}
+
+export interface BenchmarkSnapshot { schemaVersion: "benchmark-priors-v1"; priors: BenchmarkPrior[]; }
+export interface ExperimentalCandidate {
+  modelName: ModelName;
+  reasoning: ReasoningLevel;
+  workflow: Workflow;
+  permissions: Permissions;
+  qualityIndex: number | null;
+  costIndex: number;
+  confidence: ConfidenceLevel;
+  reason: string;
+}
+export interface ExperimentalRouting {
+  taskProfile?: TaskProfile;
+  snapshotVersion: string;
+  candidates: ExperimentalCandidate[];
+  suggestion?: ExperimentalCandidate;
+  error?: string;
 }
 
 export interface CitedProjectFile { path: string; exists: boolean; summary?: string; }

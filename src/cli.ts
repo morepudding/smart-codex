@@ -6,6 +6,7 @@ import { formatDecision } from "./format.js";
 import { routeWithLuna } from "./luna-router.js";
 import { loadProjectContext } from "./project-context.js";
 import { forceRoute } from "./router.js";
+import { suggestExperimentalRouting } from "./smart-router.js";
 import type { RouteName } from "./types.js";
 
 const program = new Command();
@@ -28,9 +29,10 @@ program.action(async (parts: string[], options: { project: string; dryRun?: bool
   const context = await loadProjectContext(options.project);
   const routed = options.route ? undefined : await routeWithLuna(request, context);
   const decision = options.route ? forceRoute(options.route, request) : routed!.decision;
+  const experimental = await suggestExperimentalRouting(request, context);
 
   if (options.json && options.dryRun) {
-    console.log(JSON.stringify({ decision, routing: routed ? { lunaAttempts: routed.lunaAttempts, routerUsage: routed.routerUsage, fallbackReason: routed.fallbackReason } : undefined, project: { root: context.root, signals: context.signals } }, null, 2));
+    console.log(JSON.stringify({ decision, routing: routed ? { lunaAttempts: routed.lunaAttempts, routerUsage: routed.routerUsage, fallbackReason: routed.fallbackReason } : undefined, experimental, project: { root: context.root, signals: context.signals } }, null, 2));
     return;
   }
 
@@ -41,7 +43,7 @@ program.action(async (parts: string[], options: { project: string; dryRun?: bool
   console.log("\nExecution Codex en cours...\n");
   const result = await runCodex(request, context, decision);
   if (options.json) {
-    console.log(JSON.stringify({ decision, result }, null, 2));
+    console.log(JSON.stringify({ decision, experimental, result }, null, 2));
   } else {
     console.log("Resultat Codex\n");
     console.log(result.finalResponse);

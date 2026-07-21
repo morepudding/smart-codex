@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "benchmark-priors-v1",
+  "priors": [
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "advice", "model": "luna", "reasoning": "low", "score": 72, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "localized_edit", "model": "luna", "reasoning": "medium", "score": 70, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "mechanical_change", "model": "terra", "reasoning": "medium", "score": 78, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "repo_bugfix", "model": "terra", "reasoning": "high", "score": 79, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "feature", "model": "terra", "reasoning": "high", "score": 80, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "long_refactor", "model": "sol", "reasoning": "xhigh", "score": 85, "confidence": "low" },
+    { "source": "demonstration", "version": "demo-2026-07", "measuredAt": "2026-07-21", "family": "terminal_heavy", "model": "terra", "reasoning": "high", "score": 76, "confidence": "low" }
+  ]
+}

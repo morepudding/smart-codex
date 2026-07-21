@@ -16,7 +16,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "desktop": "npm run build && electron .",
     "desktop:dev": "npm run build && electron .",
-    "desktop:smoke": "node scripts/smoke-electron.mjs",
+    "desktop:smoke": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-electron.ps1",
     "e2e:missions": "npm run build && tsx scripts/run-e2e-missions.ts",
     "e2e:sol-high": "npm run build && tsx scripts/run-e2e-missions.ts --mission sol-high"
   },

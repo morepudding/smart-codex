@@ -7,44 +7,63 @@
     <title>Smart Codex</title>
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./routing-v2.css" />
+    <link rel="stylesheet" href="./premium.css" />
+    <link rel="stylesheet" href="./premium-v2.css" />
   </head>
   <body data-phase="idle">
     <main class="app-layout">
       <aside class="history-sidebar" aria-label="Historique des missions">
-        <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><strong>Smart Codex</strong></div>
+        <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><strong>Smart Codex</strong><button id="toggle-sidebar" class="sidebar-toggle" type="button" aria-label="Réduire la sidebar" title="Réduire la sidebar">‹</button></div>
         <button id="new-mission" class="new-mission" type="button"><span>＋</span> Nouvelle mission</button>
+        <button id="choose-project" class="sidebar-project" type="button"><span class="sidebar-project-label">Projet actif</span><strong id="project-name">Aucun projet</strong><small id="project-path">Choisir un dossier projet</small></button>
         <nav id="history-list" class="history-list" aria-label="Sessions précédentes"></nav>
       </aside>
       <section class="main-panel">
         <header class="main-header">
-          <button id="choose-project" class="project-switcher" type="button"><span class="project-copy"><strong id="project-name">Aucun projet</strong><span id="project-path">Choisir un dossier projet</span></span><span aria-hidden="true">⌄</span></button>
+          <div class="top-copy"><span>Smart Codex</span><strong id="screen-title">Nouvelle mission</strong></div>
           <div id="app-status" class="app-status"><i></i><span>Prêt</span></div>
           <button id="toggle-context" class="icon-button" type="button" aria-label="Afficher ou masquer le panneau de contexte" title="Afficher ou masquer le contexte">☷</button>
         </header>
         <section id="empty-state" class="empty-state">
-          <div class="empty-copy"><p>Smart Codex</p><h1>Quelle mission veux-tu lancer&nbsp;?</h1><span>Décris le résultat attendu. La conversation restera séparée du journal technique.</span></div>
-          <div class="composer"><textarea id="prompt" rows="4" placeholder="Décris le résultat attendu…" spellcheck="true"></textarea><div class="composer-footer"><span>Ctrl + Entrée pour analyser</span><button id="launch" class="launch-button" type="button"><span id="launch-label">Analyser la mission</span> <b>→</b></button></div></div>
+          <div class="empty-copy"><p>Nouvelle mission</p><h1>Que veux-tu accomplir&nbsp;?</h1><span>Décris simplement le résultat attendu. Luna choisit la configuration adaptée.</span></div>
+          <div class="composer composer-primary">
+            <textarea id="prompt" rows="4" placeholder="Ex. Refonte l’écran d’accueil pour rendre le parcours plus clair…" spellcheck="true" aria-label="Que veux-tu accomplir ?"></textarea>
+            <div class="composer-footer"><div class="composer-tools"><button id="add-context" class="composer-tool" type="button" title="Ajouter des fichiers de contexte">＋ <span id="context-file-label">Contexte</span></button><button id="composer-project" class="composer-tool composer-project" type="button"><span aria-hidden="true">⌁</span><span id="composer-project-label">Choisir un projet</span></button><button id="routing-pill" class="routing-pill" type="button" aria-expanded="false"><span class="routing-dot" aria-hidden="true"></span><span id="routing-pill-label">Luna automatique</span><span aria-hidden="true">⌄</span></button></div><span id="composer-hint">Ctrl + Entrée</span><button id="launch" class="launch-button launch-round" type="button" aria-label="Lancer"><span id="launch-label">Lancer</span> <b>→</b></button></div>
+          </div>
+          <section id="routing-popover" class="routing-popover" hidden aria-label="Réglages du routage">
+            <header><div><strong>Routage Luna</strong><span>Luna choisit le modèle et le workflow.</span></div><button id="close-routing-popover" class="popover-close" type="button" aria-label="Fermer">×</button></header>
+            <div class="routing-summary"><span id="popover-model">Terra</span><span id="popover-reasoning">moyen</span><span id="popover-workflow">Agent unique</span></div>
+            <div class="simple-mode-field"><span>Mode</span><div class="simple-mode-picker" role="radiogroup" aria-label="Mode de la mission"><button id="routing-mode-luna" class="auto-mode" type="button" data-active="true" role="radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3-1.9 4.8a2 2 0 0 1-1.1 1.1L4 11l5 2.1a2 2 0 0 1 1.1 1.1L12 19l1.9-4.8a2 2 0 0 1 1.1-1.1l5-2.1-5-2.1a2 2 0 0 1-1.1-1.1z"/><path d="M5 3v4"/><path d="M3 5h4"/></svg><strong>Auto</strong><small>Luna choisit · Recommandé</small></button><button type="button" data-manual-intent="discussion" role="radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg><strong>Ask</strong><small>Obtenir une réponse</small></button><button type="button" data-manual-intent="implementation" role="radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 12-8.5 8.5a2.12 2.12 0 0 1-3-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25a1 1 0 0 1 0-1.41l1.38-1.38a1 1 0 0 0 0-1.41l-3.54-3.54a1 1 0 0 0-1.41 0L14.71 4.1a1 1 0 0 1-1.41 0l-1.25-1.25"/></svg><strong>Do</strong><small>Modifier le projet</small></button><button type="button" data-manual-intent="planning" role="radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><strong>Plan</strong><small>Préparer les étapes</small></button></div><button id="routing-mode-manual" type="button" hidden aria-hidden="true">Manuel</button><select id="manual-intent" hidden aria-hidden="true"><option value="discussion">Ask</option><option value="implementation">Do</option><option value="planning">Plan</option></select></div>
+            <section id="manual-routing-settings" class="manual-routing-settings" hidden><div id="manual-routing-matrix" class="routing-matrix" tabindex="0" role="application" aria-label="Choisir visuellement le modèle, la réflexion et le nombre d’agents."></div><label class="matrix-source">Modèle<select id="manual-model"><option value="luna">Luna</option><option value="terra">Terra</option><option value="sol">Sol</option></select></label><label class="matrix-source">Réflexion<select id="manual-reasoning"><option value="low">Rapide</option><option value="medium">Normale</option><option value="high">Approfondie</option><option value="xhigh">Maximale</option></select></label><label class="matrix-source">Organisation<select id="manual-workflow"><option value="single-agent">Un seul agent</option><option value="development-review">Travail + vérification</option></select></label></section>
+          </section>
           <section id="routing-proposal" class="routing-proposal" hidden>
-            <header><div><span class="eyebrow">DÉCISION AUTOMATIQUE</span><h2 id="proposal-title">Terra</h2></div><span id="proposal-observation" class="comparison-badge">Observation 1/20</span></header>
+            <header><div><span id="proposal-routing-label" class="eyebrow">MISSION COMPRISE</span><h2 id="proposal-title">Terra</h2></div><span id="proposal-observation" class="comparison-badge">Observation 1/20</span></header>
             <div class="proposal-grid">
-              <div><span>Mode</span><strong id="proposal-intent">Conseil</strong></div>
-              <label>Modèle<select id="proposal-model" disabled><option value="luna">Luna</option><option value="terra">Terra</option><option value="sol">Sol</option></select></label>
-              <label>Réflexion<select id="proposal-reasoning" disabled><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label>
-              <label>Workflow<select id="proposal-workflow" disabled><option value="single-agent">Agent unique</option><option value="development-review">Développement + revue</option></select></label>
+              <label>Mode<select id="proposal-intent" disabled><option value="discussion">Conseil</option><option value="ideation">Idéation</option><option value="planning">Planification</option><option value="analysis">Analyse</option><option value="implementation">Implémentation</option><option value="fix">Correction</option><option value="review">Revue</option></select></label>
+              <div id="proposal-routing-matrix" class="routing-matrix" tabindex="0" role="application" aria-label="Ajuster visuellement le modèle, la réflexion et le nombre d’agents."></div>
+              <label class="matrix-source">Modèle<select id="proposal-model" disabled><option value="luna">Luna</option><option value="terra">Terra</option><option value="sol">Sol</option></select></label>
+              <label class="matrix-source">Réflexion<select id="proposal-reasoning" disabled><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label>
+              <label class="matrix-source">Workflow<select id="proposal-workflow" disabled><option value="single-agent">Agent unique</option><option value="development-review">Développement + revue</option></select></label>
               <label>Accès<select id="proposal-permissions" disabled><option value="read-only">Lecture seule</option><option value="workspace-write">Écriture</option></select></label>
               <div><span>Résultat</span><strong id="proposal-result">Réponse textuelle</strong></div>
             </div>
             <p class="proposal-unknowns">Incertitude : <strong id="proposal-uncertainty">faible</strong></p>
+            <p id="proposal-summary" class="proposal-summary"></p>
             <p id="proposal-reason" class="proposal-reason"></p>
             <p id="proposal-unknowns" class="proposal-unknowns" hidden></p>
             <p id="confirmation-note" class="confirmation-note" hidden>Cette action présente un caractère destructif : le lancement vaut confirmation explicite.</p>
-            <footer><button id="confirm-launch" class="launch-button" type="button">Lancer</button><button id="modify-route" class="link-button" type="button">Modifier</button></footer>
+            <footer><button id="confirm-launch" class="launch-button" type="button">Lancer la mission</button><button id="modify-route" class="link-button" type="button">Ajuster</button></footer>
           </section>
         </section>
         <section id="mission-view" class="mission-view" hidden>
-          <header class="mission-header"><div class="mission-heading"><h1 id="mission-project">Projet</h1><p id="mission-title">Mission</p></div><div class="mission-actions"><span id="mission-meta" class="mission-meta">En cours</span><button id="show-request" class="link-button" type="button">Reprendre</button><button id="stop-mission" class="stop-button" type="button" hidden>Arrêter</button></div></header>
+          <header class="mission-header"><div class="mission-heading"><span class="eyebrow">MISSION</span><h1 id="mission-title">Mission</h1><p id="mission-project">Projet</p></div><div class="mission-actions"><span id="mission-meta" class="mission-meta">En cours</span><button id="open-technical-drawer" class="link-button" type="button">Journal technique</button><button id="show-request" class="link-button" type="button">Nouvelle mission</button><button id="stop-mission" class="stop-button" type="button" hidden>Arrêter</button></div></header>
           <div id="conversation" class="conversation" aria-live="polite"></div>
           <button id="return-to-result" class="return-to-result" type="button" hidden>Revenir au résultat ↓</button>
+          <form id="follow-up-form" class="composer follow-up-composer" hidden>
+            <section class="follow-up-routing" aria-label="Configuration manuelle de la reprise"><strong>Reprise manuelle</strong><span>Luna n’est pas relancée.</span><label>Mode<select id="follow-up-intent"><option value="discussion">Conseil</option><option value="ideation">Idéation</option><option value="planning">Planification</option><option value="analysis">Analyse</option><option value="implementation">Implémentation</option><option value="fix">Correction</option><option value="review">Revue</option></select></label><label>Modèle<select id="follow-up-model"><option value="luna">Luna</option><option value="terra">Terra</option><option value="sol">Sol</option></select></label><label>Réflexion<select id="follow-up-reasoning"><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label><label>Workflow<select id="follow-up-workflow"><option value="single-agent">Agent unique</option><option value="development-review">Développement + revue</option></select></label></section>
+            <textarea id="follow-up-prompt" rows="3" placeholder="Répondre dans cette conversation…" spellcheck="true"></textarea>
+            <div class="composer-footer"><span>Ctrl + Entrée pour envoyer</span><button id="follow-up-send" class="launch-button" type="submit">Envoyer <b>→</b></button></div>
+          </form>
           <section id="permission-card" class="permission-card" hidden><strong>Cette mission a besoin d’écriture.</strong><p id="permission-message"></p><button id="retry-permission" class="launch-button" type="button">Autoriser l’écriture et relancer</button></section>
         </section>
       </section>
@@ -53,7 +72,15 @@
         <section><span class="eyebrow">DÉCISION</span><dl class="context-decision"><div><dt>Mode</dt><dd id="context-mode">—</dd></div><div><dt>Modèle</dt><dd id="strategy-main">En attente</dd></div><div><dt>Workflow</dt><dd id="strategy-sub">—</dd></div><div><dt>Accès</dt><dd id="context-access">—</dd></div><div><dt>Résultat</dt><dd id="context-result">—</dd></div></dl><button id="strategy-details-toggle" class="link-button" type="button" hidden>Voir les détails</button><div id="strategy-details" class="strategy-details" hidden></div></section>
         <section><span class="eyebrow">MISSION</span><dl><div><dt>État</dt><dd id="context-status">Prête</dd></div><div><dt>Durée</dt><dd id="context-duration">—</dd></div><div><dt>Validation</dt><dd id="context-validation">—</dd></div><div><dt>Modifications</dt><dd id="context-files">—</dd></div><div><dt>Lignes</dt><dd id="context-lines">—</dd></div></dl></section>
       </aside>
+      <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+      <aside id="technical-drawer" class="technical-drawer" hidden aria-label="Journal technique" aria-modal="true" role="dialog"><header><div><span class="eyebrow">DÉTAILS DE LA MISSION</span><h2>Journal technique</h2></div><button id="close-technical-drawer" class="popover-close" type="button" aria-label="Fermer">×</button></header><div id="technical-drawer-content" class="technical-drawer-content"></div></aside>
     </main>
+    <aside id="mission-beacon" class="mission-beacon" role="status" aria-live="polite" hidden>
+      <div class="beacon-symbol" aria-hidden="true"><span></span><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg></div>
+      <div class="beacon-copy"><strong id="beacon-title">Mission en cours</strong><span id="beacon-detail">Préparation…</span></div>
+      <time id="beacon-duration">0:00</time>
+      <button id="close-beacon" type="button" aria-label="Masquer la notification">×</button>
+    </aside>
     <script src="./vendor/marked.umd.js"></script>
     <script src="./vendor/purify.min.js"></script>
     <script type="module" src="../renderer.js"></script>

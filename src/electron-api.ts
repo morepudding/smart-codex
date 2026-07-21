@@ -1,5 +1,6 @@
 import type {
   ExpectedResult,
+  ExperimentalRouting,
   GitChangeMetrics,
   MissionStatus,
   MissionStep,
@@ -15,15 +16,43 @@ import type {
   Workflow,
 } from "./types.js";
 
-export interface DesktopRequest { request: string; projectPath: string; }
+export interface DesktopRequest { request: string; projectPath: string; contextFiles?: string[]; }
+
+export type DesktopRoutingMode = "luna" | "manual";
+
+export interface ManualRoutingSelection {
+  intent: TaskIntent;
+  modelName: ModelName;
+  reasoning: ReasoningLevel;
+  workflow: Workflow;
+}
+
+export interface DesktopRoutingRequest extends DesktopRequest {
+  routingMode: DesktopRoutingMode;
+  manualDecision?: ManualRoutingSelection;
+}
 
 export interface DesktopRunRequest extends DesktopRequest {
   proposalId: string;
+  clientRunId: string;
+  intent?: TaskIntent;
   modelName?: ModelName;
   reasoning?: ReasoningLevel;
   workflow?: Workflow;
   permissions?: Permissions;
   confirmed: boolean;
+}
+
+export interface DesktopContinueRequest {
+  sessionId: string;
+  message: string;
+  manualDecision: ManualRoutingSelection;
+}
+
+export interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+  at: number;
 }
 
 export interface UiRoutingDecision {
@@ -44,18 +73,21 @@ export interface UiRoutingDecision {
 
 export interface UiRoutingProposal {
   proposalId: string;
+  routingMode: DesktopRoutingMode;
   decision: UiRoutingDecision;
   observationIndex: number;
   remainingObservations: number;
   lunaAttempts: number;
   routerUsage: TokenUsage;
   fallbackReason?: string;
+  experimental?: ExperimentalRouting;
 }
 
 export interface UiMissionEvent {
   type: "activity" | "strategy" | "journal" | "file" | "command" | "error" | "response" | "terminal";
   severity?: ProgressSeverity;
   sessionId?: string;
+  clientRunId?: string;
   status?: Exclude<MissionStatus, "running">;
   step?: MissionStep;
   message?: string;
@@ -67,6 +99,7 @@ export interface UiMissionEvent {
 export interface ValidationMetrics {
   tests: { run: number; failed: number };
   build: { run: number; failed: number };
+  commands?: Array<{ command: string; status: "completed" | "failed" }>;
 }
 
 export interface MissionTokenMetrics {
@@ -112,12 +145,15 @@ export interface MissionSession {
   tokens?: MissionTokenMetrics;
   outcome?: MissionOutcomeMetrics;
   routingQuality?: RoutingQualityMetrics;
+  experimentalRouting?: ExperimentalRouting;
   summary?: { finalResponse: string; reviewResponse?: string };
   technicalTrace?: TechnicalTrace;
   liveEvents?: UiMissionEvent[];
   result?: RunResult;
   events: UiMissionEvent[];
-  error?: string;
+  threadId?: string;
+  messages?: ConversationMessage[];
+  error?: string | undefined;
 }
 
 export interface DesktopRunResponse {
@@ -129,11 +165,14 @@ export interface DesktopRunResponse {
 
 export interface SmartCodexDesktopApi {
   selectProject(): Promise<string | null>;
-  decide(request: DesktopRequest): Promise<UiRoutingProposal>;
+  selectContextFiles(projectPath: string): Promise<string[]>;
+  decide(request: DesktopRoutingRequest): Promise<UiRoutingProposal>;
   run(request: DesktopRunRequest): Promise<DesktopRunResponse>;
-  stop(): Promise<void>;
+  continueSession(request: DesktopContinueRequest): Promise<DesktopRunResponse>;
+  stop(sessionId: string): Promise<void>;
   listSessions(): Promise<MissionSession[]>;
   getSession(id: string): Promise<MissionSession | null>;
+  deleteSession(id: string): Promise<void>;
   onMissionEvent(listener: (event: UiMissionEvent) => void): () => void;
 }
 
